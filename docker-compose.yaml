@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./conduit-frontend
+      dockerfile: Dockerfile
+    image: conduit-frontend:latest
+    container_name: conduit-frontend
+    ports:
+      - "8282:80"
+    restart: on-failure
+
+  backend:
+    build:
+      context: ./conduit-backend
+      dockerfile: Dockerfile
+    image: conduit-backend:latest
+    container_name: conduit-backend
+    command: gunicorn --workers 3 --bind 0.0.0.0:8000 conduit.wsgi:application
+    volumes:
+      - conduit-db:/app/conduit/db.sqlite3
+    ports:
+      - "8000:8000"
+    restart: on-failure
+
+volumes:
+  conduit-db:
+
+
