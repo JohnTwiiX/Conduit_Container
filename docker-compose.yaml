@@ -2,7 +2,10 @@ version: "3.8"
 
 services:
   frontend:
+    env_file: ".env"
     build:
+      args:
+        API_URL: ${API_URL}
       context: ./conduit-frontend
       dockerfile: Dockerfile
     image: conduit-frontend:latest
@@ -10,25 +13,19 @@ services:
     ports:
       - "8084:80"
     restart: on-failure
-    environment:
-      - API_URL=${API_URL}
 
   backend:
+    env_file: ".env"
     build:
       context: ./conduit-backend
       dockerfile: Dockerfile
     image: conduit-backend:latest
     container_name: conduit-backend
-    entrypoint: gunicorn --workers 3 --bind 0.0.0.0:8000 conduit.wsgi:application
     volumes:
       - conduit-db:/app/conduit/db.sqlite3
     ports:
       - "8085:8000"
     restart: on-failure
-    environment:
-      - DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME}
-      - DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD}
-      - DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL}
 
 volumes:
   conduit-db:
