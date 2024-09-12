@@ -4,6 +4,8 @@ A Docker Compose definition that contains two containerized services, a django b
 
 ## Requirements
 
+- Docker
+
 - Docker Compose
 
 ## Quickstart
@@ -60,6 +62,7 @@ A Docker Compose definition that contains two containerized services, a django b
 
 ### Notes
 
+- **If new Feature**: `git switch <branch>`
 - the conduit-frontend is on port 8084
 - the conduit-backend is on port 8085
 - update FE and BE Repo with:
