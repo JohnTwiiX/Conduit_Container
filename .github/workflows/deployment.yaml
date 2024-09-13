@@ -3,7 +3,7 @@ name: Clone or Pull Repository on Cloud VM
 on:
   push:
     branches:
-      - main  
+      - main
   workflow_dispatch:
 
 jobs:
@@ -38,17 +38,7 @@ jobs:
             git submodule foreach --recursive git checkout master || { echo "Failed to switch submodules to master"; exit 1; }
             git submodule foreach --recursive git pull origin master || { echo "Failed to pull submodule changes"; exit 1; }
 
-            cat <<EOT > .env
-DJANGO_SUPERUSER_USERNAME=${{ secrets.DJANGO_SUPERUSER_USERNAME }}
-DJANGO_SUPERUSER_PASSWORD=${{ secrets.DJANGO_SUPERUSER_PASSWORD }}
-DJANGO_SUPERUSER_EMAIL=${{ secrets.DJANGO_SUPERUSER_EMAIL }}
-API_URL=${{ secrets.API_URL }}
-EOT
-
-            docker stop conduit-frontend conduit-backend || echo "Containers not running"
-            docker rm conduit-frontend conduit-backend || echo "Containers not found"
-            docker system prune -a -f || { echo "Failed to prune Docker"; exit 1; }
-            docker compose up -d || { echo "Failed to start Docker containers"; exit 1; }
+            bash create_env_and_deploy.sh || { echo "Failed to create .env file and deploy"; exit 1; }
 
             echo "Deployment completed successfully."
           EOF
