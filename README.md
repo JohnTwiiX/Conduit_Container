@@ -49,7 +49,7 @@ A Docker Compose definition that contains two containerized services, a django b
 
    ```bash
    cd <submodule-directory>
-   git checkout <branch-name>
+   git switch <branch-name>
    git pull origin <branch-name>
    ```
 
