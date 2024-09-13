@@ -1,0 +1,54 @@
+name: Clone or Pull Repository on Cloud VM
+
+on:
+  push:
+    branches:
+      - main  
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Clone or Pull Repository on Remote Server
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+            # Exit on any error
+            set -e
+
+            PROJECT_DIR=${{ secrets.PROJECT_PATH }}
+
+            if [ -d "$PROJECT_DIR" ]; then
+              echo "Project exists, pulling latest changes..."
+              cd $PROJECT_DIR
+              git pull origin main || { echo "Failed to pull latest changes"; exit 1; }
+            else
+              echo "Project does not exist, cloning repository..."
+              git clone https://github.com/JohnTwiiX/Conduit_Container.git $PROJECT_DIR || { echo "Failed to clone repository"; exit 1; }
+              cd $PROJECT_DIR
+            fi
+
+            git submodule update --init --recursive || { echo "Failed to initialize submodules"; exit 1; }
+            git submodule foreach --recursive git checkout master || { echo "Failed to switch submodules to master"; exit 1; }
+            git submodule foreach --recursive git pull origin master || { echo "Failed to pull submodule changes"; exit 1; }
+
+            cat <<EOT > .env
+DJANGO_SUPERUSER_USERNAME=${{ secrets.DJANGO_SUPERUSER_USERNAME }}
+DJANGO_SUPERUSER_PASSWORD=${{ secrets.DJANGO_SUPERUSER_PASSWORD }}
+DJANGO_SUPERUSER_EMAIL=${{ secrets.DJANGO_SUPERUSER_EMAIL }}
+API_URL=${{ secrets.API_URL }}
+EOT
+
+            docker stop conduit-frontend conduit-backend || echo "Containers not running"
+            docker rm conduit-frontend conduit-backend || echo "Containers not found"
+            docker system prune -a -f || { echo "Failed to prune Docker"; exit 1; }
+            docker compose up -d || { echo "Failed to start Docker containers"; exit 1; }
+
+            echo "Deployment completed successfully."
+          EOF
