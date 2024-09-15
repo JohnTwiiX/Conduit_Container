@@ -60,6 +60,36 @@ A Docker Compose definition that contains two containerized services, a django b
    // -d - will run the containers in the background
    ```
 
+## Automation
+
+This project has a workflow. This connects to the ssh server pulled or cloned the Conduit project. Variables for the Django configuration are passed automatically, you just have to set the appropriate variables and secrets
+
+1. set Github secrets
+
+   - go to `setting -> security -> Secrets and variables -> actions`
+   - in tab secrets can you add **repo secrets**
+
+     | Secret            | description                              |
+     | ----------------- | ---------------------------------------- |
+     | `PROJECT_PATH`    | the path to the project                  |
+     | `SERVER_IP`       | the ip of your server                    |
+     | `SSH_PRIVATE_KEY` | the ssh private key to connect to server |
+     | `USER`            | the user on the server                   |
+
+1. set Github variables
+
+   - go to `setting -> security -> Secrets and variables -> actions`
+   - in tab variables can you add **repo variables**
+
+     | Variable                    | description                     |
+     | --------------------------- | ------------------------------- |
+     | `API_URL`                   | the url to your backend         |
+     | `DJANGO_SUPERUSER_EMAIL`    | the email for your superuser    |
+     | `DJANGO_SUPERUSER_USER`     | the user for your superuser     |
+     | `DJANGO_SUPERUSER_PASSWORD` | the password for your superuser |
+
+1. when you push to your main branch, this action will be triggered
+
 ### Notes
 
 - **If new Feature**: `git switch <branch>`
