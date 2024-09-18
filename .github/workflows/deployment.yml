@@ -1,0 +1,65 @@
+name: Main Repository Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy_main_repo:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the main repository
+        uses: actions/checkout@v3
+
+      - name: SSH into the server and deploy the main repository
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # Define project directory on the server
+            PROJECT_DIR=${{ secrets.PROJECT_PATH }}
+
+            # Clone the main repo if not already cloned, otherwise pull the latest changes
+            cd $PROJECT_DIR || git clone https://github.com/your-org/main-repo.git $PROJECT_DIR
+            cd $PROJECT_DIR
+
+            # Pull the latest changes from the main branch
+            git pull origin main
+
+            # Initialize and update submodules
+            git submodule update --init --recursive
+
+            # Check out master branch and pull latest for all submodules
+            git submodule foreach --recursive git checkout master
+            git submodule foreach --recursive git pull origin master
+
+            # Create or update .env file with environment variables
+            cat <<EOT > .env
+            DJANGO_SUPERUSER_USERNAME=${{ secrets.DJANGO_SUPERUSER_USERNAME }}
+            DJANGO_SUPERUSER_PASSWORD=${{ secrets.DJANGO_SUPERUSER_PASSWORD }}
+            DJANGO_SUPERUSER_EMAIL=${{ secrets.DJANGO_SUPERUSER_EMAIL }}
+            API_URL=${{ secrets.API_URL }}
+            EOT
+
+  trigger_frontend_and_backend:
+    runs-on: ubuntu-latest
+    needs: deploy_main_repo # Ensures that frontend and backend triggers wait until the main repo is deployed
+
+    steps:
+      - name: Trigger Frontend Action
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          repository: JohnTwiiX/conduit-frontend
+          token: ${{ secrets.GITHUB_TOKEN }}
+          event-type: trigger-frontend-build
+
+      - name: Trigger Backend Action
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          repository: JohnTwiiX/conduit-backend
+          token: ${{ secrets.GITHUB_TOKEN }}
+          event-type: trigger-backend-build
