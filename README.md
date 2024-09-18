@@ -64,31 +64,22 @@ A Docker Compose definition that contains two containerized services, a django b
 
 This project has a workflow. This connects to the ssh server pulled or cloned the Conduit project. Variables for the Django configuration are passed automatically, you just have to set the appropriate variables and secrets
 
-1. set Github secrets
+1. set Github secrets and variables
 
    - go to `setting -> security -> Secrets and variables -> actions`
-   - in tab secrets can you add **repo secrets**
 
-     | Secret            | description                              |
-     | ----------------- | ---------------------------------------- |
-     | `PROJECT_PATH`    | the path to the project                  |
-     | `SERVER_IP`       | the ip of your server                    |
-     | `SSH_PRIVATE_KEY` | the ssh private key to connect to server |
-     | `USER`            | the user on the server                   |
+     | Key               | description                              | secret/variable |
+     | ----------------- | ---------------------------------------- | --------------- |
+     | `PAT`             | the personal access token                | secret          |
+     | `PROJECT_PATH`    | the path to the project                  | secret          |
+     | `SERVER_IP`       | the ip of your server                    | secret          |
+     | `SSH_PRIVATE_KEY` | the ssh private key to connect to server | secret          |
+     | `USER`            | the user on the server                   | secret          |
+     | `API_URL`         | the url for the backend                  | variable        |
 
-1. set Github variables
+1. create the personal access token with this [dokumentation](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-personal-access-token-classic)
 
-   - go to `setting -> security -> Secrets and variables -> actions`
-   - in tab variables can you add **repo variables**
-
-     | Variable                    | description                     |
-     | --------------------------- | ------------------------------- |
-     | `API_URL`                   | the url to your backend         |
-     | `DJANGO_SUPERUSER_EMAIL`    | the email for your superuser    |
-     | `DJANGO_SUPERUSER_USER`     | the user for your superuser     |
-     | `DJANGO_SUPERUSER_PASSWORD` | the password for your superuser |
-
-1. when you push to your main branch, this action will be triggered
+1. when you push to your main branch, this action will be triggered and triggered the frontend and the backend repo
 
 ### Notes
 
