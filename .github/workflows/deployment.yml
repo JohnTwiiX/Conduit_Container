@@ -55,12 +55,12 @@ jobs:
         uses: peter-evans/repository-dispatch@v2
         with:
           repository: JohnTwiiX/conduit-frontend
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PAT }}
           event-type: trigger-frontend-build
 
       - name: Trigger Backend Action
         uses: peter-evans/repository-dispatch@v2
         with:
           repository: JohnTwiiX/conduit-backend
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PAT }}
           event-type: trigger-backend-build
