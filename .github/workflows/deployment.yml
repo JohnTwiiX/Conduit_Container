@@ -20,6 +20,5 @@ jobs:
           script: |
             cd ${{ secrets.PROJECT_PATH }}
             docker compose stop ${{ github.event.client_payload.service_name }} || true
-            docker compose rm -f ${{ github.event.client_payload.service_name }}
-            docker images prune -f
+            docker system prune -a
             docker compose up -d ${{ github.event.client_payload.service_name }}
