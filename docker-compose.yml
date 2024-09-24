@@ -3,7 +3,7 @@ version: "3.8"
 services:
   frontend:
     env_file: ".env"
-    image: ghcr.io/JohnTwiiX/conduit-frontend:latest
+    image: ghcr.io/johntwiix/conduit-frontend:latest
     container_name: conduit-frontend
     ports:
       - "8084:80"
@@ -11,7 +11,7 @@ services:
 
   backend:
     env_file: ".env"
-    image: ghcr.io/JohnTwiiX/conduit-backend:latest
+    image: ghcr.io/johntwiix/conduit-backend:latest
     container_name: conduit-backend
     volumes:
       - conduit-db:/app/conduit/db.sqlite3
