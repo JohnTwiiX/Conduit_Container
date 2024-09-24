@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  update_compose_file:
+  update_container_image:
     runs-on: ubuntu-latest
     if: ${{ github.event.client_payload.service_name }}
 
@@ -19,6 +19,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd ${{ secrets.PROJECT_PATH }}
-            docker compose down ${{ github.event.client_payload.service_name }}
-            docker images prune -y
+            docker compose stop ${{ github.event.client_payload.service_name }}
+            docker compose rm -f ${{ github.event.client_payload.service_name }}
+            docker images prune -f
             docker compose up -d ${{ github.event.client_payload.service_name }}
