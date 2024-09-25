@@ -7,17 +7,29 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy_main_repo:
+  update_compose_setup:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout the main repository
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-  pull_or_clone_repository:
-    runs-on: ubuntu-latest
+      - name: Generate deployment date
+        id: date
+        run: echo "DATE=$(date +'%d%m%Y%H%M')" >> $GITHUB_ENV
 
-    steps:
+      - name: Rename docker-compose file with the current date
+        run: mv docker-compose.yml docker-compose-${{ env.DATE }}.yml
+
+      - name: SCP docker-compose file to the server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: docker-compose-${{ env.DATE }}.yml
+          target: /tmp/docker-compose-${{ env.DATE }}.yml
+
       - name: SSH into the server and deploy the main repository
         uses: appleboy/ssh-action@v0.1.10
         with:
@@ -25,48 +37,20 @@ jobs:
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # Define project directory on the server
-            PROJECT_DIR=${{ secrets.PROJECT_PATH }}
+            # Create project directory if it doesn't exist
+              mkdir -p ${{ secrets.PROJECT_PATH }}
+              
+              # Navigate to the project directory
+              cd ${{ secrets.PROJECT_PATH }}
 
-            # Clone the main repo if not already cloned, otherwise pull the latest changes
-            cd $PROJECT_DIR || git clone https://github.com/JohnTwiiX/Conduit-Container.git $PROJECT_DIR
-            cd $PROJECT_DIR
-
-            # Pull the latest changes from the main branch
-            git pull origin main
-
-            # Initialize and update submodules
-            git submodule update --init --recursive
-
-            # Check out master branch and pull latest for all submodules
-            git submodule foreach --recursive git checkout master
-            git submodule foreach --recursive git pull origin master
-
-  create_env_file:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: create file
-        run: |
-          cat <<EOT > .env
-          DJANGO_SUPERUSER_USERNAME=${{ vars.DJANGO_SUPERUSER_USERNAME }}
-          DJANGO_SUPERUSER_PASSWORD=${{ vars.DJANGO_SUPERUSER_PASSWORD }}
-          DJANGO_SUPERUSER_EMAIL=${{ vars.DJANGO_SUPERUSER_EMAIL }}
-          API_URL=${{ vars.API_URL }}
-          EOT
-
-      - name: SCP .env file to the server
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: .env
-          target: ${{secrets.PROJECT_PATH}}
+              # Delete old docker-compose file
+              rm -f docker-compose.yml
+              
+              # Copy the new docker-compose file with the timestamp
+              cp /tmp/docker-compose-${{ env.DATE }}.yml ./docker-compose.yml
 
   trigger_frontend:
     runs-on: ubuntu-latest
-    needs: deploy_main_repo
 
     steps:
       - name: Trigger Downstream for frontend
@@ -78,7 +62,6 @@ jobs:
 
   trigger_backend:
     runs-on: ubuntu-latest
-    needs: deploy_main_repo
 
     steps:
       - name: Trigger Downstream for backend
