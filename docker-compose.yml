@@ -14,7 +14,7 @@ services:
     image: ghcr.io/johntwiix/conduit-backend:latest
     container_name: conduit-backend
     volumes:
-      - conduit-db:/app/db.sqlite3
+      - conduit-db:/app/db_data
     ports:
       - "8085:8000"
     restart: on-failure
