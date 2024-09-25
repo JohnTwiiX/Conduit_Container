@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  update_container_image:
+  update_container_setup:
     runs-on: ubuntu-latest
     if: ${{ github.event.client_payload.service_name }}
 
