@@ -1,0 +1,25 @@
+name: Deployment
+
+on:
+  repository_dispatch:
+    types: [trigger-deploy]
+  workflow_dispatch:
+
+jobs:
+  update_container_setup:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.client_payload.service_name }}
+
+    steps:
+      - name: restart app setup
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ${{ secrets.PROJECT_PATH }}
+            docker compose stop ${{ github.event.client_payload.service_name }} || true
+            docker compose rm ${{ github.event.client_payload.service_name }} -f || true
+            docker image prune -a -f
+            docker compose up -d ${{ github.event.client_payload.service_name }}
